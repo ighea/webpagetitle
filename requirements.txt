@@ -1,0 +1,6 @@
+pytest
+pytest_httpserver
+selenium
+Flask
+requests_html
+twisted
