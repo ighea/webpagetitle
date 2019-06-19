@@ -24,7 +24,6 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 ENV PATH=$PATH:/opt/firefox/:${workdir}
-#ENV FLASK_APP=app.py
 
 RUN useradd -m -d /home/${appuser} ${appuser}
 
@@ -40,8 +39,4 @@ RUN pytest test/
 
 ENV FLASK_ENV=production
 
-#CMD [ "python", "-m", "flask",  "run", "--host=0.0.0.0", "--port=9999" ]
-#CMD [ "python", "-m", "flask",  "run", "--host=0.0.0.0" ]
 ENTRYPOINT [ "./entry-point.sh" ]
-
-# FLASK_APP=sript.py python -m flask run --host=0.0.0.0 --port=9999
