@@ -13,10 +13,10 @@ docker build -t webpagetitle .
 Run the container, expose internal port 9999 as external 9999 and bind to host 0.0.0.0 for listening for all connections.
 
 ```
-docker run -p 9999:9999 webpagetitle --port 9999 --host=0.0.0.0
+docker run --name webpagetitle -p 8080:8000 webpagetitle --bind 0.0.0.0
 ```
 
 ## usage with curl
 ```
-curl -d "url=https://google.com" -H "Content-Type: application/x-www-form-urlencoded" -X POST http://localhost:9999/
+curl -d "url=https://google.com" -H "Content-Type: application/x-www-form-urlencoded" -X POST http://localhost:8080/
 ```

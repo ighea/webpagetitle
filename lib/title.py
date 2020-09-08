@@ -1,43 +1,60 @@
-import logging, sys, os
-#if os.environ['FLASK_ENV'] is not "production":
-#    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+import logging, sys, os, lxml
+import requests
+
+if os.environ.get('FLASK_ENV') != "production":
+    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
 from requests_html import HTMLSession
 
 from selenium import webdriver
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
+
+class NoTitleError(Exception):
+    pass
 
 class Title:
     def __init__(self, url):
         self.url = url
         self.title = None
         self.method = None
-        
+
     # Fetch url with fallback support
     def fetch(self, timeout = 10):
         try:
             return self.fetch_selenium(timeout)
-        except:
-            return self.fetch_requests(timeout)
-        
+        except (NoTitleError, WebDriverException):
+            try:
+                return self.fetch_requests(timeout)
+            except requests.exceptions.ConnectionError:
+                return False
+
     def fetch_requests(self, timeout):
-        logging.debug("Fetching with requests...");
-        
+        logging.debug("Fetching with requests...")
+
         self.method = "requests"
-        title = HTMLSession().get(self.url, timeout = timeout).html.find('title', first=True).text
+        response = HTMLSession().get(self.url, timeout = timeout)
+        if(response.status_code != 200):
+            return False
+        try:
+            title = response.html.find('title', first=True).text
+        except:
+            return False
         self.title = title
+
         return True
-        
+
     def fetch_selenium(self, timeout):
-        logging.debug("Fetching with selenium...");
-        
+        logging.debug("Fetching with selenium...")
+
         self.method = "selenium"
-        
+
         options = Options()
         options.headless = True
-        
+        #options.log.level = "trace" # For debugging issues with firefox and geckodriver
+
         firefox_profile = FirefoxProfile()
         # Disable CSS
         firefox_profile.set_preference('permissions.default.stylesheet', 2)
@@ -53,20 +70,20 @@ class Title:
         source = browser.page_source
         logging.debug("SOURCE: " + source)
         browser.quit()
-        
+
         logging.debug("Selenium retrieved title: " + title)
-                    
+
         self.title = title
-        
+
         if len(title) == 0:
-            raise Exception("Selenium no title.")
-        
+            raise NoTitleError("Selenium no title.")
+
         return True
-    
+
     # get title for page
     def get_title(self):
         return self.title
-    
+
     # return method name used for title retrieval ("selenium" or "requests")
     def get_method(self):
         return self.method

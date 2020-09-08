@@ -3,7 +3,8 @@
 
 from flask import Flask
 from flask import request
-from flask import abort 
+from flask import abort
+from flask import jsonify
 
 from lib.title import Title
 
@@ -23,22 +24,30 @@ def title():
     timeout = 30
 
     url = request.form.get('url')
-    logging.debug("URL:" + url);
-    
+    logging.debug("URL:" + url)
+
     if url is None:
         abort(400)
-    
+
     title = Title(url)
-    title.fetch()
-    
+    title.fetch(timeout)
+
     method = title.get_method()
     title = title.get_title()
-    if title is None:
-        abort(500)
-    
-    if method is "requests":
-        title = title + " (F)"
 
-    logging.debug("Final title: " + title);
-    
-    return title
+    if title is None:
+        return jsonify({
+            "success": False,
+            "title": None,
+            "method": "all",
+        })
+
+    logging.debug(f"Final title: {title} ({method})")
+
+    output = {
+        "success": True,
+        "title": title,
+        "method": method,
+    }
+
+    return jsonify(output)
