@@ -36,7 +36,7 @@ pyppeteer==0.2.2
 pyquery==1.4.1
 pytest==6.0.1
 pytest-httpserver==0.3.5
-requests==2.24.0
+requests==2.31.0
 requests-html==0.10.0
 selenium==3.141.0
 six==1.15.0
